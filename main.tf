@@ -60,7 +60,7 @@ resource "azurerm_network_security_group" "example" {
 }
 
 resource "azurerm_virtual_machine" "main" {
-  count = length(local.nic_names)
+  count                 = length(local.nic_names)
   name                  = "${var.prefix}-vm-${count.index + 1}"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
