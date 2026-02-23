@@ -5,5 +5,5 @@ output "merged_tag" {
   value = join("-", azurerm_virtual_machine.main[*].tags["environment"])
 }
 output "vm_ids" {
-  value = azurerm_virtual_machine.main[*].id
+  value = [for vm in azurerm_virtual_machine.main : vm.id]
 }
