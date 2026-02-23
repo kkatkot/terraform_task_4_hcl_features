@@ -1,3 +1,11 @@
+variable "prefix" {
+  default = "tfvmex"
+}
+variable "vm_password" {
+  default   = "Password1234!"
+  sensitive = true
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "Central India"
@@ -17,10 +25,8 @@ resource "azurerm_subnet" "internal" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_network_interface" "main" {
-  for_each            = toset(var.nic_names)
+  for_each            = toset(local.nic_names)
   name                = "${var.prefix}-nic-${each.key}"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -38,7 +44,7 @@ resource "azurerm_network_security_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   dynamic "security_rule" {
-    for_each = var.security_rules
+    for_each = local.security_rules
     content {
       name                       = security_rule.value.name
       priority                   = security_rule.value.priority
@@ -54,11 +60,11 @@ resource "azurerm_network_security_group" "example" {
 }
 
 resource "azurerm_virtual_machine" "main" {
-  for_each              = azurerm_network_interface.main
-  name                  = "${var.prefix}-vm-${each.key}"
+  count = length(local.nic_names)
+  name                  = "${var.prefix}-vm-${count.index + 1}"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [each.value.id]
+  network_interface_ids = [azurerm_network_interface.main["nic${count.index + 1}"].id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
@@ -68,7 +74,7 @@ resource "azurerm_virtual_machine" "main" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "myosdisk1-${each.key}"
+    name              = "myosdisk1-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -85,7 +91,7 @@ resource "azurerm_virtual_machine" "main" {
     environment = "staging"
   }
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 

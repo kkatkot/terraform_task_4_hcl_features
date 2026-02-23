@@ -1,26 +1,28 @@
-variable "prefix" {
-  default = "tfvmex"
+locals {
+  nic_names  = ["nic1", "nic2"]
+  security_rules = [
+  {
+    name                       = "Allow-SSH"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  },
+  {
+    name                       = "Allow-HTTP"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+]
 }
 
-variable "security_rules" {
-  type = list(object({
-    name                       = string
-    priority                   = number
-    direction                  = string
-    access                     = string
-    protocol                   = string
-    source_port_range          = string
-    destination_port_range     = string
-    source_address_prefix      = string
-    destination_address_prefix = string
-  }))
-}
-
-variable "nic_names" {
-  default = ["nic1", "nic2"]
-}
-
-variable "vm_password" {
-  default   = "Password1234!"
-  sensitive = true
-}
